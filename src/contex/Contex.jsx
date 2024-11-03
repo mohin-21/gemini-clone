@@ -1,5 +1,7 @@
 import { createContext, useState } from "react";
 import run from "../config/Gemini";
+import { marked } from 'marked';
+
 export const Context = createContext();
 
 const ContextProvider = (props) =>{
@@ -11,7 +13,12 @@ const ContextProvider = (props) =>{
     const [loading, setLoading] = useState(false);
     const [resultData, setResultData] = useState("");
 
-    //delay para function is here
+    //for typing effect
+    const dealyPara = (index, nextWord) =>{
+        setTimeout(()=>{
+            setResultData(prev => prev+nextWord)
+        }, 75*index)
+    }
 
     const newChat = () =>{
         setLoading(false);
@@ -25,17 +32,12 @@ const ContextProvider = (props) =>{
         setPrevPrompt(prev => [...prev, input]);
         setRecentPrompt(input);
         const response = await run(input);
-        let responseArr = response.split("**");
-        let newResponse ="";
-        for(let i=0; i<responseArr.length; i++){
-            if( i === 0 || i%2 !== 1){
-                newResponse += responseArr[i];
-            }else{
-                newResponse += "<b>"+responseArr[i]+ "</b>";
-            }
+        const newResponse2 = marked(response);
+        const newResponseArray =  newResponse2.split(" ");
+        for(let i=0; i<newResponseArray.length; i++){
+            const nextWord = newResponseArray[i];
+            dealyPara(i, nextWord+ " ");
         }
-        let newResponse2 = newResponse.split("*").join("</br>");
-        setResultData(newResponse2);
         setLoading(false);
         setInput("");
     }
